@@ -1,24 +1,45 @@
-# Compiled class file
-*.class
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+bin/
+.vscode/
 
-# Log file
+# Build files (Maven & Gradle)
+target/
+build/
+.gradle/
+out/
+
+# Log files
 *.log
+logs/
 
-# BlueJ files
-*.ctxt
+# Operating System files
+.DS_Store
+Thumbs.db
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Local configuration
+# 민감한 정보(DB 접속 정보, API 키 등)가 들어가는 파일은 gitignore 처리합니다.
+# 대신, 설정 예시를 위한 application-example.yml 같은 파일을 만들어두는 것이 좋습니다.
+application-*.yml
+application-*.properties
+!application-example.yml
+!application-example.properties
 
-# Package Files #
+# Other
+/mvnw
+/mvnw.cmd
+.mvn/
+
+# H2 Database files
+*.mv.db
+*.trace.db
+
+# Jar/War files
 *.jar
 *.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*

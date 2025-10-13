@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: LogEYE
+  datasource:
+    url: jdbc:postgresql://localhost:5432/logeye_db
+    username: postgres
+    password: 0818
+  sql:
+    init:
+      #data-locations: classpath:/data.sql
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: validate

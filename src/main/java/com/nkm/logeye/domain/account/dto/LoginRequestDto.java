@@ -1,24 +1,16 @@
 package com.nkm.logeye.domain.account.dto;
 
-import com.nkm.logeye.domain.account.Account;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record LoginRequestDto(
-        @NotNull
+        @NotBlank(message = "이메일을 입력해주세요.")
         @Size(max = 255)
         String email,
 
-        @NotNull
+        @NotBlank(message = "비밀번호를 입력해주세요.")
         @Size(max = 255)
-        String password,
-
-        @NotNull
-        @Size(max = 100)
-        String name
+        String password
 ){
 
-    public static LoginRequestDto from(Account account){
-        return new LoginRequestDto(account.getEmail(), account.getPassword(), account.getName());
-    }
 }

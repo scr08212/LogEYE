@@ -1,0 +1,81 @@
+enum account_status {
+  ACTIVE
+  DEACTIVATED
+  PENDING_VERIFICATION
+}
+
+enum project_status {
+  ACTIVE
+  DELETED
+}
+
+enum issue_status {
+  UNHANDLED
+  RESOLVED
+  IGNORED
+}
+
+enum issue_level {
+  ERROR
+  WARN
+  INFO
+  DEBUG
+}
+
+
+// 테이블 정의
+Table account {
+  id bigint [pk, increment]
+  email varchar(255) [unique, not null]
+  password varchar(255) [not null]
+  name varchar(100) [not null]
+  status account_status [not null, default: 'ACTIVE']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table project {
+  id bigint [pk, increment]
+  account_id bigint [not null, ref: > account.id]
+  name varchar(100) [not null]
+  api_key varchar(255) [unique, not null]
+  status project_status [not null, default: 'ACTIVE']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (account_id, name) [unique, name: 'project_account_id_name_uq']
+    account_id [name: 'project_ix_account_id']
+  }
+}
+
+Table issue {
+  id bigint [pk, increment]
+  project_id bigint [not null, ref: > project.id]
+  fingerprint varchar(64) [not null, note: 'SHA-256 해시 길이에 최적화']
+  level issue_level [not null, default: 'ERROR']
+  message text [not null]
+  stack_trace text
+  status issue_status [not null, default: 'UNHANDLED']
+  event_count bigint [not null, default: 1]
+  last_seen timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (project_id, fingerprint) [unique, name: 'issue_project_id_fingerprint_uq']
+    project_id [name: 'issue_ix_project_id']
+  }
+}
+
+Table error_event {
+  id bigint [pk, increment]
+  issue_id bigint [not null, ref: > issue.id]
+  occurred_at timestamptz [not null, note: '실제 에러 발생 시각']
+  context_data jsonb
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    issue_id [name: 'error_event_ix_issue_id']
+  }
+}

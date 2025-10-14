@@ -2,7 +2,7 @@ spring:
   application:
     name: LogEYE
   datasource:
-    url: jdbc:postgresql://localhost:5432/logeye_db
+    url: jdbc:postgresql://localhost:5432/logeye_db?stringtype=unspecified
     username: postgres
     password: 0818
   sql:
@@ -12,3 +12,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+jwt:
+  secret-key: aGVsbG8td29ybGQtcHJvamVjdC1sb2dleWUtc2VjcmV0LWtleS1mb3Itand0LXNlY3VyaXR5LWhzaDI1Ni1hbGdvcml0aG0K
+  access-token-expiration-millis: 1800000
+  refresh-token-expiration-millis: 604800000

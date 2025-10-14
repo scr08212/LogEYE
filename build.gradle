@@ -33,6 +33,7 @@ dependencies {
 
     // Database: 데이터베이스 드라이버
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
 
     // Lombok: 보일러플레이트 코드 감소 유틸리티
     compileOnly 'org.projectlombok:lombok'

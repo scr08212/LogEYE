@@ -1,4 +1,4 @@
-package com.nkm.logeye.domain.account.dto;
+package com.nkm.logeye.domain.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

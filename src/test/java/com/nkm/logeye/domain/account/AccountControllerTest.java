@@ -33,12 +33,12 @@ class AccountControllerTest {
     @DisplayName("회원가입 API 성공")
     void signupApi_success() throws Exception {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("test@example.com", "12345678", "TestUser");
+        SignupRequestDto requestDto = new SignupRequestDto("test@example.com", "12345678", "TestUser");
 
         // when & then
         mockMvc.perform(post("/api/v1/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signupRequestDto)))
+                .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
@@ -52,12 +52,12 @@ class AccountControllerTest {
     @DisplayName("회원가입 API 실패 - 잘못된 요청 데이터")
     void signupApi_fail_invalid_request() throws Exception {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("test", "12345", "");
+        SignupRequestDto requestDto = new SignupRequestDto("test", "12345", "");
 
         // when & then
         mockMvc.perform(post("/api/v1/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signupRequestDto)))
+                .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

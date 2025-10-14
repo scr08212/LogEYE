@@ -33,7 +33,7 @@ class AccountServiceTest {
     @DisplayName("회원가입 성공")
     void signup_success() {
         // given (테스트 준비)
-        SignupRequestDto requestDto = new SignupRequestDto("test@example.com", "password123", "TestUser");
+        SignupRequestDto requestDto = new SignupRequestDto("test@example.com", "12345678", "TestUser");
         String encodedPassword = "encodedPassword";
 
         when(passwordEncoder.encode(requestDto.password())).thenReturn(encodedPassword);
@@ -58,7 +58,7 @@ class AccountServiceTest {
     @DisplayName("회원가입 실패 - 이메일 중복")
     void signup_fail(){
         // given
-        SignupRequestDto requestDto = new SignupRequestDto("test@example.com", "password123", "TestUser");
+        SignupRequestDto requestDto = new SignupRequestDto("test@example.com", "12345678", "TestUser");
         when(accountRepository.findByEmail(requestDto.email())).thenReturn(Optional.of(Account.builder().build()));
         // when then
         assertThatThrownBy(() -> accountService.signup(requestDto))

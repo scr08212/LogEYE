@@ -15,7 +15,6 @@ import static com.nkm.logeye.global.jwt.JwtConstants.*;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private final JwtProvider jwtProvider;
 
     @Override

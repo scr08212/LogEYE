@@ -80,6 +80,31 @@ class ProjectControllerTest {
     }
 
     @Test
+    @DisplayName("E2E 테스트: 실제 로그인으로 토큰을 받은 후 프로젝트 생성")
+    public void createProject_E2E_success() throws Exception {
+        LoginRequestDto loginRequestDto = new LoginRequestDto(accountA.getEmail(), "password");
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequestDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        String accessToken = JsonPath.read(responseBody, "$.data.accessToken");
+
+        String projectName = "E2E Test Project";
+        ProjectCreateRequestDto createRequestDto  = new ProjectCreateRequestDto(projectName);
+        mockMvc.perform(post("/api/v1/projects")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.name").value(projectName));
+    }
+
+    @Test
     @DisplayName("프로젝트 생성 성공")
     @WithMockUser(username = "accountA@example.com", roles = "USER")
     public void createProject_success() throws Exception {

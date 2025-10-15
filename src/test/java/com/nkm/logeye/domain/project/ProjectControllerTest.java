@@ -1,9 +1,11 @@
 package com.nkm.logeye.domain.project;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.nkm.logeye.domain.account.Account;
 import com.nkm.logeye.domain.account.AccountRepository;
 import com.nkm.logeye.domain.account.AccountStatus;
+import com.nkm.logeye.domain.auth.dto.LoginRequestDto;
 import com.nkm.logeye.domain.project.dto.ProjectCreateRequestDto;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -30,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class ProjectControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -87,9 +89,14 @@ class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Test Project"))
-                .andExpect(jsonPath("$.apiKey").isNotEmpty());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.data.name").value("Test Project"))
+                .andExpect(jsonPath("$.data.apiKey").isNotEmpty())
+                .andExpect(jsonPath("$.data.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty())
+                .andExpect(status().isCreated());
+
     }
 
     @ParameterizedTest
@@ -137,10 +144,12 @@ class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.projects").isArray())
-                .andExpect(jsonPath("$.projects", hasSize(1)))
-                .andExpect(jsonPath("$.projects[0].name").value(projectA.getName()))
-                .andExpect(jsonPath("$.projects[0].accountId").value(accountA.getId()));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.data.projects").isArray())
+                .andExpect(jsonPath("$.data.projects", hasSize(1)))
+                .andExpect(jsonPath("$.data.projects[0].name").value(projectA.getName()))
+                .andExpect(jsonPath("$.data.projects[0].accountId").value(accountA.getId()));
     }
 
     @Test
@@ -151,8 +160,10 @@ class ProjectControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.projects").isArray())
-                .andExpect(jsonPath("$.projects", hasSize(0)));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.data.projects").isArray())
+                .andExpect(jsonPath("$.data.projects", hasSize(0)));
     }
 
     @Test
@@ -174,10 +185,12 @@ class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(projectId))
-                .andExpect(jsonPath("$.accountId").value(accountA.getId()))
-                .andExpect(jsonPath("$.name").value(projectA.getName()))
-                .andExpect(jsonPath("$.apiKey").value(projectA.getApiKey()));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.data.id").value(projectId))
+                .andExpect(jsonPath("$.data.accountId").value(accountA.getId()))
+                .andExpect(jsonPath("$.data.name").value(projectA.getName()))
+                .andExpect(jsonPath("$.data.apiKey").value(projectA.getApiKey()));
     }
 
     @Test
@@ -224,7 +237,7 @@ class ProjectControllerTest {
         mockMvc.perform(delete(String.format("/api/v1/projects/%s", projectId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         boolean isExist = projectRepository.existsById(projectId);
         assertThat(isExist).isFalse();

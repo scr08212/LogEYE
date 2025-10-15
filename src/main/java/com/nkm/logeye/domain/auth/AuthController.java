@@ -2,6 +2,7 @@ package com.nkm.logeye.domain.auth;
 
 import com.nkm.logeye.domain.auth.dto.LoginRequestDto;
 import com.nkm.logeye.domain.auth.dto.TokenResponseDto;
+import com.nkm.logeye.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody @Valid LoginRequestDto loginRequestDto){
+    public ResponseEntity<ApiResponse<TokenResponseDto>> login(@RequestBody @Valid LoginRequestDto loginRequestDto){
         TokenResponseDto tokenResponseDto = authService.login(loginRequestDto);
 
-        return ResponseEntity.ok(tokenResponseDto);
+        return ResponseEntity.ok(ApiResponse.success(tokenResponseDto));
     }
 }

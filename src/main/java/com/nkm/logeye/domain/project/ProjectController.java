@@ -3,6 +3,7 @@ package com.nkm.logeye.domain.project;
 import com.nkm.logeye.domain.project.dto.ProjectCreateRequestDto;
 import com.nkm.logeye.domain.project.dto.ProjectListResponseDto;
 import com.nkm.logeye.domain.project.dto.ProjectResponseDto;
+import com.nkm.logeye.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,42 +21,36 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping
-    public ResponseEntity<ProjectResponseDto> createProject(
+    public ResponseEntity<ApiResponse<ProjectResponseDto>> createProject(
             @RequestBody @Valid ProjectCreateRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails){
-        Project savedProject = projectService.createProject(requestDto, userDetails.getUsername());
-        ProjectResponseDto responseDto = ProjectResponseDto.from(savedProject);
+        ProjectResponseDto responseDto = projectService.createProject(requestDto, userDetails.getUsername());
 
-        URI location = URI.create("/api/v1/projects/" + savedProject.getId());
-        return ResponseEntity.created(location).body(responseDto);
+        URI location = URI.create("/api/v1/projects/" + responseDto.id());
+        return ResponseEntity.created(location).body(ApiResponse.success(responseDto));
     }
 
     @GetMapping
-    public ResponseEntity<ProjectListResponseDto> getAllProject(@AuthenticationPrincipal UserDetails userDetails){
-        List<Project> foundProjects = projectService.findAllByEmail(userDetails.getUsername());
-        List<ProjectResponseDto> projectDtos = foundProjects.stream()
-                .map(ProjectResponseDto::from)
-                .toList();
+    public ResponseEntity<ApiResponse<ProjectListResponseDto>> getAllProject(@AuthenticationPrincipal UserDetails userDetails){
+        List<ProjectResponseDto> projectDtos = projectService.findAllByEmail(userDetails.getUsername());
 
-        return ResponseEntity.ok(ProjectListResponseDto.from(projectDtos));
+        return ResponseEntity.ok(ApiResponse.success(ProjectListResponseDto.from(projectDtos)));
     }
 
     @GetMapping("/{projectId}")
-    public ResponseEntity<ProjectResponseDto> getProject(
+    public ResponseEntity<ApiResponse<ProjectResponseDto>> getProject(
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails userDetails){
-        Project foundProject = projectService.findProjectById(projectId, userDetails.getUsername());
-
-        ProjectResponseDto responseDto = ProjectResponseDto.from(foundProject);
-        return ResponseEntity.ok().body(responseDto);
+        ProjectResponseDto responseDto = projectService.findProjectById(projectId, userDetails.getUsername());
+        return ResponseEntity.ok().body(ApiResponse.success(responseDto));
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<Void> deleteProject(
+    public ResponseEntity<ApiResponse<Void>> deleteProject(
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails userDetails) {
         projectService.deleteProjectById(projectId, userDetails.getUsername());
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

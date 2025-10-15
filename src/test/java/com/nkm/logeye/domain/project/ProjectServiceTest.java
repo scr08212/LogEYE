@@ -4,6 +4,7 @@ import com.nkm.logeye.domain.account.Account;
 import com.nkm.logeye.domain.account.AccountRepository;
 import com.nkm.logeye.domain.account.AccountStatus;
 import com.nkm.logeye.domain.project.dto.ProjectCreateRequestDto;
+import com.nkm.logeye.domain.project.dto.ProjectResponseDto;
 import com.nkm.logeye.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 class ProjectServiceTest {
-
     @InjectMocks
     private ProjectService projectService;
 
@@ -52,12 +52,12 @@ class ProjectServiceTest {
         when(accountRepository.findByEmail(accountEmail)).thenReturn(Optional.of(fakeAccount));
         when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> invocation.getArgument(0));
         // when
-        Project savedProject = projectService.createProject(requestDto, accountEmail);
+        ProjectResponseDto responseDto = projectService.createProject(requestDto, accountEmail);
         // then
-        assertThat(savedProject).isNotNull();
-        assertThat(savedProject.getName()).isEqualTo("Project");
-        assertThat(savedProject.getAccount()).isEqualTo(fakeAccount);
-        assertThat(savedProject.getApiKey()).isNotBlank();
+        assertThat(responseDto).isNotNull();
+        assertThat(responseDto.name()).isEqualTo("Project");
+        assertThat(responseDto.accountId()).isEqualTo(fakeAccount.getId());
+        assertThat(responseDto.apiKey()).isNotBlank();
 
         verify(accountRepository).findByEmail(accountEmail);
         verify(projectRepository).save(any(Project.class));
@@ -82,13 +82,13 @@ class ProjectServiceTest {
         when(projectRepository.findAllByAccount(fakeAccount)).thenReturn(fakeProjects);
 
         // when
-        List<Project> resultProjects = projectService.findAllByEmail(accountEmail);
+        List<ProjectResponseDto> responseDtos = projectService.findAllByEmail(accountEmail);
 
         // then
-        assertThat(resultProjects).isNotNull();
-        assertThat(resultProjects.size()).isEqualTo(2);
-        assertThat(resultProjects.get(0).getId()).isEqualTo(10L);
-        assertThat(resultProjects.get(1).getId()).isEqualTo(11L);
+        assertThat(responseDtos).isNotNull();
+        assertThat(responseDtos.size()).isEqualTo(2);
+        assertThat(responseDtos.get(0).id()).isEqualTo(10L);
+        assertThat(responseDtos.get(1).id()).isEqualTo(11L);
 
         verify(accountRepository).findByEmail(accountEmail);
         verify(projectRepository).findAllByAccount(fakeAccount);
@@ -109,11 +109,11 @@ class ProjectServiceTest {
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
 
         // when
-        Project foundProject = projectService.findProjectById(projectId, accountEmail);
+        ProjectResponseDto responseDto = projectService.findProjectById(projectId, accountEmail);
 
         // then
-        assertThat(foundProject).isNotNull();
-        assertThat(foundProject.getId()).isEqualTo(projectId);
+        assertThat(responseDto).isNotNull();
+        assertThat(responseDto.id()).isEqualTo(projectId);
 
         verify(projectRepository).findById(projectId);
     }

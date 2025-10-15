@@ -3,6 +3,8 @@ package com.nkm.logeye.domain.project;
 import com.nkm.logeye.domain.account.Account;
 import com.nkm.logeye.domain.account.AccountRepository;
 import com.nkm.logeye.domain.project.dto.ProjectCreateRequestDto;
+import com.nkm.logeye.domain.project.dto.ProjectResponseDto;
+import com.nkm.logeye.global.exception.ErrorCode;
 import com.nkm.logeye.global.exception.ResourceNotFoundException;
 import com.nkm.logeye.global.util.ApiKeyGenerator;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,7 @@ public class ProjectService {
     private final AccountRepository accountRepository;
 
     @Transactional
-    public Project createProject(ProjectCreateRequestDto requestDto, String accountEmail) {
+    public ProjectResponseDto createProject(ProjectCreateRequestDto requestDto, String accountEmail) {
         Account foundAccount = findAccountByEmail(accountEmail);
         String apiKey = ApiKeyGenerator.generateApiKey();
 
@@ -29,16 +31,22 @@ public class ProjectService {
                 .apiKey(apiKey)
                 .status(ProjectStatus.ACTIVE)
                 .build();
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+
+        return ProjectResponseDto.from(savedProject);
     }
 
-    public List<Project> findAllByEmail(String accountEmail){
+    public List<ProjectResponseDto> findAllByEmail(String accountEmail){
         Account foundAccount = findAccountByEmail(accountEmail);
-        return projectRepository.findAllByAccount(foundAccount);
+        List<Project> foundProjects = projectRepository.findAllByAccount(foundAccount);
+        return foundProjects.stream()
+                .map(ProjectResponseDto::from)
+                .toList();
     }
 
-    public Project findProjectById(Long projectId, String accountEmail) {
-        return findProjectByIdAndVerifyOwner(projectId, accountEmail);
+    public ProjectResponseDto findProjectById(Long projectId, String accountEmail) {
+        Project foundProject = findProjectByIdAndVerifyOwner(projectId, accountEmail);
+        return ProjectResponseDto.from(foundProject);
     }
 
     @Transactional
@@ -50,7 +58,7 @@ public class ProjectService {
 
     private Project findProjectByIdAndVerifyOwner(Long projectId, String accountEmail){
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PROJECT_NOT_FOUND));
 
         if (!project.getAccount().getEmail().equals(accountEmail)) {
             throw new AccessDeniedException("해당 프로젝트에 접근할 권한이 없습니다.");
@@ -60,6 +68,6 @@ public class ProjectService {
 
     private Account findAccountByEmail(String accountEmail) {
         return accountRepository.findByEmail(accountEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", accountEmail));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
 }

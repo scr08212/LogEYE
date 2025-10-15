@@ -1,6 +1,9 @@
 package com.nkm.logeye.domain.account;
 
+import com.nkm.logeye.domain.account.dto.AccountResponseDto;
 import com.nkm.logeye.domain.account.dto.SignupRequestDto;
+import com.nkm.logeye.global.exception.EmailDuplicationException;
+import com.nkm.logeye.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,10 +16,9 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Account signup(SignupRequestDto signupRequestDto) {
-
+    public AccountResponseDto signup(SignupRequestDto signupRequestDto) {
         if(accountRepository.findByEmail(signupRequestDto.email()).isPresent()){
-            throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
+            throw new EmailDuplicationException();
         }
 
         String encodedPassword = passwordEncoder.encode(signupRequestDto.password());
@@ -27,7 +29,7 @@ public class AccountService {
                 .name(signupRequestDto.name())
                 .status(AccountStatus.ACTIVE)
                 .build();
-
-        return accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+        return AccountResponseDto.from(savedAccount);
     }
 }

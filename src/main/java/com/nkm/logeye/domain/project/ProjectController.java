@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,7 +20,6 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping
-    @Transactional
     public ResponseEntity<ProjectResponseDto> createProject(
             @RequestBody @Valid ProjectCreateRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails){
@@ -53,7 +51,6 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{projectId}")
-    @Transactional
     public ResponseEntity<Void> deleteProject(
             @PathVariable Long projectId,
             @AuthenticationPrincipal UserDetails userDetails) {

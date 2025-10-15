@@ -1,11 +1,14 @@
 package com.nkm.logeye.domain.account;
 
 import com.nkm.logeye.domain.BaseTimeEntity;
+import com.nkm.logeye.domain.project.Project;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,6 +30,9 @@ public class Account extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AccountStatus status;
+
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Project> projects;
 
     @Builder
     public Account(String email, String password, String name, AccountStatus status) {

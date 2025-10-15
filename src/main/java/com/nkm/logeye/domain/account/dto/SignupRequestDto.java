@@ -17,5 +17,5 @@ public record SignupRequestDto(
         @NotBlank(message = "이름은 비어 있을 수 없습니다.")
         @Size(max = 100, message = "이름 길이는 최대 100자입니다.")
         String name
-        ){
+){
 }

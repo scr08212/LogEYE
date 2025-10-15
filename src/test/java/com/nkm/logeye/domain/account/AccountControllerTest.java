@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class AccountControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -42,10 +41,12 @@ class AccountControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.email").value("test@example.com"))
-                .andExpect(jsonPath("$.name").value("TestUser"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.data.id").exists())
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.name").value("TestUser"))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
     }
 
     @Test

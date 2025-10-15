@@ -20,7 +20,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
     private final ObjectMapper objectMapper;
 
     @Override

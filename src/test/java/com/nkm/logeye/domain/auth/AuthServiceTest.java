@@ -1,6 +1,5 @@
 package com.nkm.logeye.domain.auth;
 
-import com.nkm.logeye.domain.account.dto.SignupRequestDto;
 import com.nkm.logeye.domain.auth.dto.LoginRequestDto;
 import com.nkm.logeye.domain.auth.dto.TokenResponseDto;
 import com.nkm.logeye.global.jwt.JwtProvider;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
-
     @InjectMocks
     private AuthService authService;
 

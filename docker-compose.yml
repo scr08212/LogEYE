@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    # .env 파일로부터 환경 변수를 읽어옵니다.
+    env_file:
+      - ./.env
+    # DB 서비스의 상태가 'healthy'가 될 때까지 app 서비스 시작을 대기합니다.
+    depends_on:
+      db:
+        condition: service_healthy
+    # 네트워크를 명시하여 서비스 간 통신을 보장합니다.
+    networks:
+      - my-network
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: logeye
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d logeye"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - my-network
+
+# Docker가 관리하는 명명된 볼륨 정의
+volumes:
+  postgres-data:
+
+# 서비스들이 통신할 네트워크 정의
+networks:
+  my-network:

@@ -1,10 +1,10 @@
 name: LogEYE CI/CD
 
-on: [push]
-#  push:
-#    branches: [ "main" ]
-#  pull_request:
-#    branches: [ "main" ]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   # Job 1: 빌드, 테스트, 코드 분석

@@ -2,11 +2,14 @@ package com.nkm.logeye.domain.project;
 
 import com.nkm.logeye.domain.BaseTimeEntity;
 import com.nkm.logeye.domain.account.Account;
+import com.nkm.logeye.domain.ingestion.Issue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,6 +32,9 @@ public class Project extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectStatus status;
+
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Issue> issues;
 
     @Builder
     public Project(Account account, String name, String apiKey, ProjectStatus status){

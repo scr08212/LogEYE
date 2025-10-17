@@ -20,17 +20,14 @@ public class Project extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id")
     private Account account;
 
-    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(unique = true, nullable = false, length = 255)
     private String apiKey;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ProjectStatus status;
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

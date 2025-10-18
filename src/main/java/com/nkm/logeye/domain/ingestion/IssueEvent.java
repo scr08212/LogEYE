@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.ZonedDateTime;
 
@@ -21,6 +23,7 @@ public class IssueEvent extends BaseTimeEntity {
     @JoinColumn(name = "issue_id")
     private Issue issue;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String contextData;
 

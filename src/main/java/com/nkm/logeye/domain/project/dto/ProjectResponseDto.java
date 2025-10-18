@@ -3,7 +3,7 @@ package com.nkm.logeye.domain.project.dto;
 import com.nkm.logeye.domain.project.Project;
 import com.nkm.logeye.domain.project.ProjectStatus;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record ProjectResponseDto(
         Long id,
@@ -11,8 +11,8 @@ public record ProjectResponseDto(
         String name,
         String apiKey,
         ProjectStatus status,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        ZonedDateTime createdAt,
+        ZonedDateTime updatedAt
 ) {
     public static ProjectResponseDto from(Project project) {
         return new ProjectResponseDto(

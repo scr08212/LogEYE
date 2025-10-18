@@ -40,7 +40,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/accounts", "/api/v1/auth/login").permitAll()
+                        .requestMatchers(
+                                "/api/v1/accounts",
+                                "/api/v1/auth/login",
+                                "/api/v1/logs").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))

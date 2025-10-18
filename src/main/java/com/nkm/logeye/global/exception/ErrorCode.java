@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // Auth
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH-001", "Authentication failed"),
+    INVALID_API_KEY(HttpStatus.FORBIDDEN, "AUTH-002", "Invalid API Key"),
 
     // Resource Not Found
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-003", "Resource not found"),

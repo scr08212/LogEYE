@@ -119,7 +119,7 @@ class IssueControllerTest {
     @DisplayName("이슈 상세 조회 API 성공")
     @WithMockUser(username = "owner@test.com", roles = "USER")
     void getIssueDetails_success() throws Exception {
-        mockMvc.perform(get("/api/v1/issues/{issueId}", issue.getId()))
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{issueId}", project.getId(), issue.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -131,7 +131,7 @@ class IssueControllerTest {
     @DisplayName("이슈 상세 조회 API 실패 - 다른 사용자 접근")
     @WithMockUser(username = "other@test.com", roles = "USER")
     void getIssueDetails_fail_notOwner() throws Exception {
-        mockMvc.perform(get("/api/v1/issues/{issueId}", issue.getId()))
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{issueId}", project.getId(), issue.getId()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -142,7 +142,7 @@ class IssueControllerTest {
     void updateIssueStatus_success() throws Exception {
         IssueStatusUpdateRequestDto requestDto = new IssueStatusUpdateRequestDto(IssueStatus.RESOLVED);
 
-        mockMvc.perform(patch("/api/v1/issues/{issueId}/status", issue.getId())
+        mockMvc.perform(patch("/api/v1/projects/{projectId}/issues/{issueId}/status", project.getId(), issue.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())

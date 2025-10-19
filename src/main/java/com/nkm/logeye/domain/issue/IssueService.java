@@ -36,7 +36,7 @@ public class IssueService {
 
     public IssueDetailResponseDto findIssueById(Long issueId, String accountEmail) {
         Issue issue = issueRepository.findByIdAndAccountEmail(issueId, accountEmail)
-                .orElseThrow(() -> new AccessDeniedException("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다."));
+                .orElseThrow(() -> new AccessDeniedException("해당 이슈를 찾을 수 없거나 접근 권한이 없습니다."));
 
         return IssueDetailResponseDto.from(issue);
     }
@@ -44,7 +44,7 @@ public class IssueService {
     @Transactional
     public void updateIssueStatus(Long issueId, String accountEmail, IssueStatusUpdateRequestDto requestDto) {
         Issue issue = issueRepository.findByIdAndAccountEmail(issueId, accountEmail)
-                .orElseThrow(() -> new AccessDeniedException("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다."));
+                .orElseThrow(() -> new AccessDeniedException("해당 이슈를 찾을 수 없거나 접근 권한이 없습니다."));
 
         issue.updateStatus(requestDto.status());
     }

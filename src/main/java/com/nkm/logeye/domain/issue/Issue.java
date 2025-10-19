@@ -40,9 +40,6 @@ public class Issue extends BaseTimeEntity {
 
     private ZonedDateTime lastSeen;
 
-    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<IssueEvent> issueEvents = new ArrayList<>();
-
     @Builder
     public Issue(Project project, String fingerprint, IssueLevel level, String message, String stackTrace, IssueStatus status, Long eventCount, ZonedDateTime lastSeen) {
         this.project = project;

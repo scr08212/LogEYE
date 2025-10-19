@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/projects/{projectId}")
 public class IssueController {
 
     private final IssueService issueService;
 
-    @GetMapping("/projects/{projectId}/issues")
+    @GetMapping("/issues")
     public ResponseEntity<ApiResponse<Page<IssueSummaryResponseDto>>> getIssuesByProject(
             @PathVariable Long projectId,
             @RequestParam(required = false) IssueStatus status,

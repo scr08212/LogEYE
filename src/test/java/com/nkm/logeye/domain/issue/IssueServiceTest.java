@@ -62,19 +62,16 @@ class IssueServiceTest {
     void findIssuesByProjectId_success() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
-        // Page<Issue> issuePage = new PageImpl<>(List.of(issue)); // Mock 데이터도 전체를 반영하도록 수정
 
-        // when() 부분은 Specification을 사용하도록 변경되었으므로, 그에 맞게 수정합니다.
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
         when(issueRepository.findAll(any(Specification.class), any(Pageable.class)))
-                .thenReturn(Page.empty()); // 간단히 빈 페이지를 반환하도록 설정
+                .thenReturn(Page.empty());
 
         // when
         issueService.findIssuesByProjectId(project.getId(), owner.getEmail(), null, pageable);
 
         // then
         verify(projectRepository).findById(project.getId());
-        // findByProjectId가 아닌 findAll(Specification, Pageable)이 호출되는지 검증
         verify(issueRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 
@@ -115,7 +112,7 @@ class IssueServiceTest {
         // when & then
         assertThatThrownBy(() -> issueService.findIssueById(nonExistentIssueId, owner.getEmail()))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다.");
+                .hasMessage("해당 이슈를 찾을 수 없거나 접근 권한이 없습니다.");
     }
 
     @Test
@@ -128,7 +125,7 @@ class IssueServiceTest {
         // when & then
         assertThatThrownBy(() -> issueService.findIssueById(issue.getId(), other.getEmail()))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다.");
+                .hasMessage("해당 이슈를 찾을 수 없거나 접근 권한이 없습니다.");
     }
 
     @Test

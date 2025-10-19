@@ -5,7 +5,7 @@ import com.nkm.logeye.domain.issue.IssueStatus;
 
 import java.time.ZonedDateTime;
 
-public record issueSummaryResponseDto(
+public record IssueSummaryResponseDto(
         Long id,
         IssueLevel level,
         String message,

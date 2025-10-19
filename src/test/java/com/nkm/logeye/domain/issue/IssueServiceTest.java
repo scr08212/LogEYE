@@ -94,37 +94,41 @@ class IssueServiceTest {
     @DisplayName("이슈 상세 조회 성공")
     void findIssueById_success() {
         // given
-        when(issueRepository.findByIdWithEvents(issue.getId())).thenReturn(Optional.of(issue));
+        when(issueRepository.findByIdAndAccountEmail(issue.getId(), owner.getEmail()))
+                .thenReturn(Optional.of(issue));
 
         // when
         issueService.findIssueById(issue.getId(), owner.getEmail());
 
         // then
-        verify(issueRepository).findByIdWithEvents(issue.getId());
+        verify(issueRepository).findByIdAndAccountEmail(issue.getId(), owner.getEmail());
     }
 
     @Test
-    @DisplayName("이슈 상세 조회 실패 - 존재하지 않는 이슈")
-    void findIssueById_fail_notFound() {
+    @DisplayName("이슈 상세 조회 실패 - 존재하지 않는 이슈 또는 권한 없음")
+    void findIssueById_fail_notFoundOrNotOwner() {
         // given
         Long nonExistentIssueId = 999L;
-        when(issueRepository.findByIdWithEvents(nonExistentIssueId)).thenReturn(Optional.empty());
+        when(issueRepository.findByIdAndAccountEmail(nonExistentIssueId, owner.getEmail()))
+                .thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> issueService.findIssueById(nonExistentIssueId, owner.getEmail()))
-                .isInstanceOf(ResourceNotFoundException.class);
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다.");
     }
 
     @Test
     @DisplayName("이슈 상세 조회 실패 - 소유주가 아님")
     void findIssueById_fail_notOwner() {
         // given
-        when(issueRepository.findByIdWithEvents(issue.getId())).thenReturn(Optional.of(issue));
+        when(issueRepository.findByIdAndAccountEmail(issue.getId(), other.getEmail()))
+                .thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> issueService.findIssueById(issue.getId(), other.getEmail()))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("해당 이슈에 접근할 권한이 없습니다.");
+                .hasMessage("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다.");
     }
 
     @Test
@@ -132,16 +136,17 @@ class IssueServiceTest {
     void updateIssueStatus_success() {
         // given
         IssueStatusUpdateRequestDto requestDto = new IssueStatusUpdateRequestDto(IssueStatus.RESOLVED);
-        Issue spiedIssue = spy(issue); // 실제 객체의 메소드 호출을 감시하기 위해 spy 사용
+        Issue spiedIssue = spy(issue);
 
-        when(issueRepository.findByIdWithEvents(issue.getId())).thenReturn(Optional.of(spiedIssue));
+        when(issueRepository.findByIdAndAccountEmail(issue.getId(), owner.getEmail()))
+                .thenReturn(Optional.of(spiedIssue));
 
         // when
         issueService.updateIssueStatus(issue.getId(), owner.getEmail(), requestDto);
 
         // then
-        verify(issueRepository).findByIdWithEvents(issue.getId());
-        verify(spiedIssue).updateStatus(IssueStatus.RESOLVED); // updateStatus 메소드가 RESOLVED 값으로 호출되었는지 검증
+        verify(issueRepository).findByIdAndAccountEmail(issue.getId(), owner.getEmail());
+        verify(spiedIssue).updateStatus(IssueStatus.RESOLVED);
         assertThat(spiedIssue.getStatus()).isEqualTo(IssueStatus.RESOLVED);
     }
 }

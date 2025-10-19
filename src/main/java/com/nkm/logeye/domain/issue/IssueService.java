@@ -1,7 +1,6 @@
 package com.nkm.logeye.domain.issue;
 
 import com.nkm.logeye.domain.issue.dto.IssueDetailResponseDto;
-import com.nkm.logeye.domain.issue.dto.IssueEventResponseDto;
 import com.nkm.logeye.domain.issue.dto.IssueStatusUpdateRequestDto;
 import com.nkm.logeye.domain.issue.dto.IssueSummaryResponseDto;
 import com.nkm.logeye.domain.project.Project;
@@ -16,63 +15,39 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-
 @Service
 @RequiredArgsConstructor
 public class IssueService {
     private final IssueRepository issueRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository; // findIssuesByProjectId 에서는 여전히 필요
 
     public Page<IssueSummaryResponseDto> findIssuesByProjectId(Long projectId, String accountEmail, IssueStatus status, Pageable pageable) {
         Project project = findProjectAndVerifyOwner(projectId, accountEmail);
 
-        Specification<Issue> spec = null;
-
-        spec = IssueSpecification.and(spec, IssueSpecification.equalProjectId(project.getId()));
-
+        Specification<Issue> spec = IssueSpecification.equalProjectId(project.getId());
         if (status != null) {
-            spec = IssueSpecification.and(spec, IssueSpecification.equalStatus(status));
+            spec = spec.and(IssueSpecification.equalStatus(status));
         }
+
         Page<Issue> issues = issueRepository.findAll(spec, pageable);
 
-        return issues.map(issue -> new IssueSummaryResponseDto(
-                issue.getId(),
-                issue.getLevel(),
-                issue.getMessage(),
-                issue.getStatus(),
-                issue.getEventCount(),
-                issue.getLastSeen()
-        ));
+        return issues.map(IssueSummaryResponseDto::from);
     }
 
     public IssueDetailResponseDto findIssueById(Long issueId, String accountEmail) {
-        Issue issue = findIssueAndVerifyOwner(issueId, accountEmail);
+        Issue issue = issueRepository.findByIdAndAccountEmail(issueId, accountEmail)
+                .orElseThrow(() -> new AccessDeniedException("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다."));
 
-        List<IssueEventResponseDto> eventDtos = issue.getIssueEvents().stream()
-                .map(event -> new IssueEventResponseDto(event.getId(), event.getOccurredAt(), event.getContextData()))
-                .toList();
-
-        return new IssueDetailResponseDto(
-                issue.getId(),
-                issue.getLevel(),
-                issue.getMessage(),
-                issue.getStackTrace(),
-                issue.getStatus(),
-                issue.getEventCount(),
-                issue.getLastSeen(),
-                eventDtos
-        );
+        return IssueDetailResponseDto.from(issue);
     }
 
     @Transactional
     public void updateIssueStatus(Long issueId, String accountEmail, IssueStatusUpdateRequestDto requestDto) {
-        Issue issue = findIssueAndVerifyOwner(issueId, accountEmail);
+        Issue issue = issueRepository.findByIdAndAccountEmail(issueId, accountEmail)
+                .orElseThrow(() -> new AccessDeniedException("해당 이슈에 접근할 권한이 없거나 존재하지 않는 이슈입니다."));
 
         issue.updateStatus(requestDto.status());
     }
-
 
     private Project findProjectAndVerifyOwner(Long projectId, String accountEmail) {
         Project project = projectRepository.findById(projectId)
@@ -82,15 +57,5 @@ public class IssueService {
             throw new AccessDeniedException("해당 프로젝트에 접근할 권한이 없습니다.");
         }
         return project;
-    }
-
-    private Issue findIssueAndVerifyOwner(Long issueId, String accountEmail) {
-        Issue issue = issueRepository.findByIdWithEvents(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ISSUE_NOT_FOUND)); // ErrorCode에 추가 필요
-
-        if (!issue.getProject().getAccount().getEmail().equals(accountEmail)) {
-            throw new AccessDeniedException("해당 이슈에 접근할 권한이 없습니다.");
-        }
-        return issue;
     }
 }

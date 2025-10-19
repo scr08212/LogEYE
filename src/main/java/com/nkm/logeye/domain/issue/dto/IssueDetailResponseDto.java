@@ -10,6 +10,7 @@ public record IssueDetailResponseDto (
         Long id,
         IssueLevel level,
         String message,
+        String stackTrace,
         IssueStatus status,
         Long eventCount,
         ZonedDateTime lastSeen,

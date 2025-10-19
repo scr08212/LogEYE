@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nkm.logeye.domain.account.Account;
 import com.nkm.logeye.domain.account.AccountRepository;
 import com.nkm.logeye.domain.account.AccountStatus;
-import com.nkm.logeye.domain.ingestion.dto.IssueEventRequestDto;
+import com.nkm.logeye.domain.issue.IssueEventRepository;
+import com.nkm.logeye.domain.issue.IssueRepository;
+import com.nkm.logeye.domain.issue.dto.IssueEventRequestDto;
 import com.nkm.logeye.domain.project.Project;
 import com.nkm.logeye.domain.project.ProjectRepository;
 import com.nkm.logeye.domain.project.ProjectStatus;
@@ -22,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

@@ -1,6 +1,10 @@
 package com.nkm.logeye.domain.ingestion;
 
-import com.nkm.logeye.domain.ingestion.dto.IssueEventRequestDto;
+import com.nkm.logeye.domain.issue.Issue;
+import com.nkm.logeye.domain.issue.IssueEvent;
+import com.nkm.logeye.domain.issue.IssueEventRepository;
+import com.nkm.logeye.domain.issue.IssueRepository;
+import com.nkm.logeye.domain.issue.dto.IssueEventRequestDto;
 import com.nkm.logeye.domain.project.Project;
 import com.nkm.logeye.domain.project.ProjectRepository;
 import com.nkm.logeye.global.exception.BusinessException;
@@ -14,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 

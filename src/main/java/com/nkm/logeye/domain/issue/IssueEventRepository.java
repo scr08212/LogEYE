@@ -1,4 +1,4 @@
-package com.nkm.logeye.domain.ingestion;
+package com.nkm.logeye.domain.issue;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

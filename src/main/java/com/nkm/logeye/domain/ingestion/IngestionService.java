@@ -1,6 +1,7 @@
 package com.nkm.logeye.domain.ingestion;
 
-import com.nkm.logeye.domain.ingestion.dto.IssueEventRequestDto;
+import com.nkm.logeye.domain.issue.*;
+import com.nkm.logeye.domain.issue.dto.IssueEventRequestDto;
 import com.nkm.logeye.domain.project.Project;
 import com.nkm.logeye.domain.project.ProjectRepository;
 import com.nkm.logeye.global.exception.BusinessException;

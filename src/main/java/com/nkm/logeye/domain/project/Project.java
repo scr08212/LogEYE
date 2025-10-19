@@ -2,7 +2,7 @@ package com.nkm.logeye.domain.project;
 
 import com.nkm.logeye.domain.BaseTimeEntity;
 import com.nkm.logeye.domain.account.Account;
-import com.nkm.logeye.domain.ingestion.Issue;
+import com.nkm.logeye.domain.issue.Issue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.nkm.logeye.domain.ingestion;
+package com.nkm.logeye.domain.issue;
 
 import com.nkm.logeye.domain.BaseTimeEntity;
 import com.nkm.logeye.domain.project.Project;
@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -56,5 +58,9 @@ public class Issue extends BaseTimeEntity {
 
     public void updateLastSeen(ZonedDateTime lastSeen) {
         this.lastSeen = lastSeen;
+    }
+
+    public void updateStatus(IssueStatus status) {
+        this.status = status;
     }
 }

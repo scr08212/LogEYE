@@ -1,4 +1,4 @@
-package com.nkm.logeye.domain.ingestion;
+package com.nkm.logeye.domain.issue;
 
 public enum IssueStatus {
     UNHANDLED,

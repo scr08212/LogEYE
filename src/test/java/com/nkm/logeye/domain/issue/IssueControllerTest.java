@@ -53,7 +53,7 @@ class IssueControllerTest {
 
     private Account owner;
     private Project project;
-    private Issue issue;
+    private Issue issue, resolvedIssue, ignoredIssue;
 
     @BeforeEach
     void setUp() {
@@ -73,11 +73,31 @@ class IssueControllerTest {
 
         issue = issueRepository.save(Issue.builder()
                 .project(project)
-                .message("Initial Issue")
+                .message("This is UNHANDLED")
                 .status(IssueStatus.UNHANDLED)
                 .level(IssueLevel.ERROR)
                 .eventCount(10L)
                 .fingerprint("test-fingerprint-1234")
+                .lastSeen(ZonedDateTime.now())
+                .build());
+
+        resolvedIssue = issueRepository.save(Issue.builder()
+                .project(project)
+                .message("This is RESOLVED")
+                .status(IssueStatus.RESOLVED)
+                .level(IssueLevel.ERROR)
+                .eventCount(5L)
+                .fingerprint("test-fingerprint-12345")
+                .lastSeen(ZonedDateTime.now())
+                .build());
+
+        ignoredIssue = issueRepository.save(Issue.builder()
+                .project(project)
+                .message("This is IGNORED")
+                .status(IssueStatus.IGNORED)
+                .level(IssueLevel.ERROR)
+                .eventCount(20L)
+                .fingerprint("test-fingerprint-123456")
                 .lastSeen(ZonedDateTime.now())
                 .build());
     }
@@ -104,7 +124,7 @@ class IssueControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(issue.getId()))
-                .andExpect(jsonPath("$.data.message").value("Initial Issue"));
+                .andExpect(jsonPath("$.data.message").value("This is UNHANDLED"));
     }
 
     @Test
@@ -128,5 +148,33 @@ class IssueControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("이슈 목록 조회 API 성공 - UNHANDLED 상태 필터링")
+    @WithMockUser(username = "owner@test.com", roles = "USER")
+    void getIssues_withStatusFilter_success() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues", project.getId())
+                        .param("status", "UNHANDLED")) // status=UNHANDLED 파라미터 추가
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalElements").value(1)) // UNHANDLED 상태인 이슈는 1개
+                .andExpect(jsonPath("$.data.content[0].message").value("This is UNHANDLED"));
+    }
+
+    @Test
+    @DisplayName("이슈 목록 조회 API 성공 - eventCount 내림차순 정렬")
+    @WithMockUser(username = "owner@test.com", roles = "USER")
+    void getIssues_withSorting_success() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues", project.getId())
+                        .param("sort", "eventCount,desc")) // sort=eventCount,desc 파라미터 추가
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalElements").value(3)) // 필터링 없으므로 총 3개
+                .andExpect(jsonPath("$.data.content[0].message").value("This is IGNORED")) // eventCount가 20으로 가장 높음
+                .andExpect(jsonPath("$.data.content[1].message").value("This is UNHANDLED")) // eventCount가 10
+                .andExpect(jsonPath("$.data.content[2].message").value("This is RESOLVED")); // eventCount가 5로 가장 낮음
     }
 }

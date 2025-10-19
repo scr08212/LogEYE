@@ -13,13 +13,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,18 +62,20 @@ class IssueServiceTest {
     void findIssuesByProjectId_success() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
-        List<Issue> issueList = List.of(issue);
-        Page<Issue> issuePage = new PageImpl<>(issueList, pageable, 1);
+        // Page<Issue> issuePage = new PageImpl<>(List.of(issue)); // Mock 데이터도 전체를 반영하도록 수정
 
+        // when() 부분은 Specification을 사용하도록 변경되었으므로, 그에 맞게 수정합니다.
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(issueRepository.findByProjectId(project.getId(), pageable)).thenReturn(issuePage);
+        when(issueRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(Page.empty()); // 간단히 빈 페이지를 반환하도록 설정
 
         // when
-        issueService.findIssuesByProjectId(project.getId(), owner.getEmail(), pageable);
+        issueService.findIssuesByProjectId(project.getId(), owner.getEmail(), null, pageable);
 
         // then
         verify(projectRepository).findById(project.getId());
-        verify(issueRepository).findByProjectId(project.getId(), pageable);
+        // findByProjectId가 아닌 findAll(Specification, Pageable)이 호출되는지 검증
+        verify(issueRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test
@@ -84,7 +85,7 @@ class IssueServiceTest {
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
 
         // when & then
-        assertThatThrownBy(() -> issueService.findIssuesByProjectId(project.getId(), other.getEmail(), PageRequest.of(0, 10)))
+        assertThatThrownBy(() -> issueService.findIssuesByProjectId(project.getId(), other.getEmail(), null, PageRequest.of(0, 10)))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("해당 프로젝트에 접근할 권한이 없습니다.");
     }

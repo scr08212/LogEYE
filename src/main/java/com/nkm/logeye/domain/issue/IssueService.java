@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +25,17 @@ public class IssueService {
     private final IssueRepository issueRepository;
     private final ProjectRepository projectRepository;
 
-    public Page<IssueSummaryResponseDto> findIssuesByProjectId(Long projectId, String accountEmail, Pageable pageable) {
+    public Page<IssueSummaryResponseDto> findIssuesByProjectId(Long projectId, String accountEmail, IssueStatus status, Pageable pageable) {
         Project project = findProjectAndVerifyOwner(projectId, accountEmail);
 
-        Page<Issue> issues = issueRepository.findByProjectId(projectId, pageable);
+        Specification<Issue> spec = null;
+
+        spec = IssueSpecification.and(spec, IssueSpecification.equalProjectId(project.getId()));
+
+        if (status != null) {
+            spec = IssueSpecification.and(spec, IssueSpecification.equalStatus(status));
+        }
+        Page<Issue> issues = issueRepository.findAll(spec, pageable);
 
         return issues.map(issue -> new IssueSummaryResponseDto(
                 issue.getId(),

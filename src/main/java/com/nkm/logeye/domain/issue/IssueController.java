@@ -23,11 +23,11 @@ public class IssueController {
     @GetMapping("/projects/{projectId}/issues")
     public ResponseEntity<ApiResponse<Page<IssueSummaryResponseDto>>> getIssuesByProject(
             @PathVariable Long projectId,
+            @RequestParam(required = false) IssueStatus status,
             @AuthenticationPrincipal UserDetails userDetails,
             Pageable pageable) {
-        // Spring Security 컨텍스트에서 현재 로그인한 사용자 정보를 가져옵니다.
         String accountEmail = userDetails.getUsername();
-        Page<IssueSummaryResponseDto> issuePage = issueService.findIssuesByProjectId(projectId, accountEmail, pageable);
+        Page<IssueSummaryResponseDto> issuePage = issueService.findIssuesByProjectId(projectId, accountEmail, status, pageable);
         return ResponseEntity.ok(ApiResponse.success(issuePage));
     }
 

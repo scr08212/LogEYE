@@ -49,11 +49,15 @@ class IssueControllerTest {
     private IssueRepository issueRepository;
 
     @Autowired
+    private IssueEventRepository issueEventRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private Account owner;
     private Project project;
     private Issue issue, resolvedIssue, ignoredIssue;
+    private IssueEvent issueEvent;
 
     @BeforeEach
     void setUp() {
@@ -99,6 +103,12 @@ class IssueControllerTest {
                 .eventCount(20L)
                 .fingerprint("test-fingerprint-123456")
                 .lastSeen(ZonedDateTime.now())
+                .build());
+
+        issueEvent = issueEventRepository.save(IssueEvent.builder()
+                .issue(issue)
+                .occurredAt(ZonedDateTime.now())
+                .contextData("{\"key\":\"value\"}")
                 .build());
     }
 
@@ -176,5 +186,27 @@ class IssueControllerTest {
                 .andExpect(jsonPath("$.data.content[0].message").value("This is IGNORED")) // eventCount가 20으로 가장 높음
                 .andExpect(jsonPath("$.data.content[1].message").value("This is UNHANDLED")) // eventCount가 10
                 .andExpect(jsonPath("$.data.content[2].message").value("This is RESOLVED")); // eventCount가 5로 가장 낮음
+    }
+
+    @Test
+    @DisplayName("특정 이슈의 이벤트 목록 조회 API 성공")
+    @WithMockUser(username = "owner@test.com", roles = "USER")
+    void getIssueEvents_success() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{issueId}/events", project.getId(), issue.getId())
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[0].id").value(issueEvent.getId()));
+    }
+
+    @Test
+    @DisplayName("특정 이슈의 이벤트 목록 조회 API 실패 - 다른 사용자 접근")
+    @WithMockUser(username = "other@test.com", roles = "USER")
+    void getIssueEvents_fail_notOwner() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{issueId}/events", project.getId(), issue.getId()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 }

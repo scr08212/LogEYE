@@ -1,6 +1,7 @@
 package com.nkm.logeye.domain.issue;
 
 import com.nkm.logeye.domain.issue.dto.IssueDetailResponseDto;
+import com.nkm.logeye.domain.issue.dto.IssueEventResponseDto;
 import com.nkm.logeye.domain.issue.dto.IssueStatusUpdateRequestDto;
 import com.nkm.logeye.domain.issue.dto.IssueSummaryResponseDto;
 import com.nkm.logeye.global.response.ApiResponse;
@@ -48,5 +49,15 @@ public class IssueController {
         String accountEmail = userDetails.getUsername();
         issueService.updateIssueStatus(issueId, accountEmail, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @GetMapping("/issues/{issueId}/events")
+    public ResponseEntity<ApiResponse<Page<IssueEventResponseDto>>> getIssueEvents(
+            @PathVariable Long issueId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Pageable pageable) {
+        String accountEmail = userDetails.getUsername();
+        Page<IssueEventResponseDto> eventPage = issueService.findEventsByIssueId(issueId, accountEmail, pageable);
+        return ResponseEntity.ok(ApiResponse.success(eventPage));
     }
 }

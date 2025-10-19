@@ -21,7 +21,8 @@ public enum ErrorCode {
     // Resource Not Found
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-003", "Resource not found"),
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-004", "Project not found"),
-    ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-005", "Account not found");
+    ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-005", "Account not found"),
+    ISSUE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-006", "Issue not found");
 
     private final HttpStatus status;
     private final String code;

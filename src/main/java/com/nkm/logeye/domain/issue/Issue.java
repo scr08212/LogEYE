@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -38,6 +40,9 @@ public class Issue extends BaseTimeEntity {
 
     private ZonedDateTime lastSeen;
 
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<IssueEvent> issueEvents = new ArrayList<>();
+
     @Builder
     public Issue(Project project, String fingerprint, IssueLevel level, String message, String stackTrace, IssueStatus status, Long eventCount, ZonedDateTime lastSeen) {
         this.project = project;
@@ -56,5 +61,9 @@ public class Issue extends BaseTimeEntity {
 
     public void updateLastSeen(ZonedDateTime lastSeen) {
         this.lastSeen = lastSeen;
+    }
+
+    public void updateStatus(IssueStatus status) {
+        this.status = status;
     }
 }

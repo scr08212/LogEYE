@@ -17,3 +17,8 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-token-expiration-millis: 1800000
   refresh-token-expiration-millis: 604800000
+
+ai:
+  llm:
+    api-key: ${LLM_API_KEY}
+    url: ${LLM_URL}

@@ -59,6 +59,8 @@ public class OpenAIClient implements AIAnalysisClient{
                     .doOnError(throwable -> log.error("Error during AI analysis request.", throwable))
                     .onErrorMap(e->!(e instanceof AIAnalysisException), e -> new AIAnalysisException(ErrorCode.AI_ANALYSIS_FAILED, e))
                     .block();
+        } catch (AIAnalysisException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to get AI analysis for Issue ID: {}. Error: {}", issue.getId(), e.getMessage());
             throw new AIAnalysisException(ErrorCode.AI_ANALYSIS_FAILED, e);

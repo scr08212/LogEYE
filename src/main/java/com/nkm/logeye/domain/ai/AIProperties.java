@@ -1,4 +1,4 @@
-package com.nkm.logeye.global.ai;
+package com.nkm.logeye.domain.ai;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -14,7 +14,7 @@ RUN gradle build -x test --no-daemon
 
 # ================= STAGE 2: Create the final image =================
 # 실제 애플리케이션을 실행할 최소한의 환경만 포함하는 이미지입니다.
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /app

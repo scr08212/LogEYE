@@ -1,5 +1,7 @@
 package com.nkm.logeye.domain.issue;
 
+import com.nkm.logeye.domain.ai.AIAnalysisService;
+import com.nkm.logeye.domain.ai.dto.AnalysisResultDto;
 import com.nkm.logeye.domain.issue.dto.IssueDetailResponseDto;
 import com.nkm.logeye.domain.issue.dto.IssueEventResponseDto;
 import com.nkm.logeye.domain.issue.dto.IssueStatusUpdateRequestDto;
@@ -16,12 +18,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/projects/{projectId}")
+@RequestMapping("/api/v1/projects/{projectId}/issues")
 public class IssueController {
 
     private final IssueService issueService;
+    private final AIAnalysisService aiAnalysisService;
 
-    @GetMapping("/issues")
+    @GetMapping()
     public ResponseEntity<ApiResponse<Page<IssueSummaryResponseDto>>> getIssuesByProject(
             @PathVariable Long projectId,
             @RequestParam(required = false) IssueStatus status,
@@ -32,7 +35,7 @@ public class IssueController {
         return ResponseEntity.ok(ApiResponse.success(issuePage));
     }
 
-    @GetMapping("/issues/{issueId}")
+    @GetMapping("/{issueId}")
     public ResponseEntity<ApiResponse<IssueDetailResponseDto>> getIssueDetails(
             @PathVariable Long issueId,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -41,7 +44,7 @@ public class IssueController {
         return ResponseEntity.ok(ApiResponse.success(issueDetail));
     }
 
-    @PatchMapping("/issues/{issueId}/status")
+    @PatchMapping("/{issueId}/status")
     public ResponseEntity<ApiResponse<Void>> updateIssueStatus(
             @PathVariable Long issueId,
             @RequestBody @Valid IssueStatusUpdateRequestDto requestDto,
@@ -51,7 +54,7 @@ public class IssueController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @GetMapping("/issues/{issueId}/events")
+    @GetMapping("/{issueId}/events")
     public ResponseEntity<ApiResponse<Page<IssueEventResponseDto>>> getIssueEvents(
             @PathVariable Long issueId,
             @AuthenticationPrincipal UserDetails userDetails,
@@ -59,5 +62,15 @@ public class IssueController {
         String accountEmail = userDetails.getUsername();
         Page<IssueEventResponseDto> eventPage = issueService.findEventsByIssueId(issueId, accountEmail, pageable);
         return ResponseEntity.ok(ApiResponse.success(eventPage));
+    }
+
+    @PostMapping("/{issueId}/analyze")
+    public ResponseEntity<ApiResponse<AnalysisResultDto>> analyzeIssue(
+            @PathVariable Long issueId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ){
+        String accountEmail = userDetails.getUsername();
+        AnalysisResultDto analysisResultDto = aiAnalysisService.analysisIssue(issueId, accountEmail);
+        return ResponseEntity.ok(ApiResponse.success(analysisResultDto));
     }
 }

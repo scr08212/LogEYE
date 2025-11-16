@@ -22,7 +22,13 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-003", "Resource not found"),
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-004", "Project not found"),
     ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-005", "Account not found"),
-    ISSUE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-006", "Issue not found");
+    ISSUE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON-006", "Issue not found"),
+
+    // AI Analysis
+    AI_ANALYSIS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI-001", "AI analysis service failed"),
+    AI_PROVIDER_AUTH_FAILED(HttpStatus.UNAUTHORIZED, "AI-002", "AI provider authentication failed. Check your API key."),
+    AI_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI-003", "AI provider rate limit exceeded."),
+    AI_INVALID_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "AI-004", "Invalid response from AI analysis service");
 
     private final HttpStatus status;
     private final String code;

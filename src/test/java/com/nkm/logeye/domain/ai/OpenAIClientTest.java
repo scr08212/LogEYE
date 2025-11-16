@@ -1,8 +1,7 @@
 package com.nkm.logeye.domain.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nkm.logeye.domain.ai.dto.AnalysisResult;
-import com.nkm.logeye.domain.issue.Issue;
+import com.nkm.logeye.domain.ai.dto.AIAnalysisResponseDto;
 import com.nkm.logeye.global.exception.AIAnalysisException;
 import com.nkm.logeye.global.exception.ErrorCode;
 import okhttp3.mockwebserver.MockResponse;
@@ -55,15 +54,15 @@ class OpenAIClientTest {
     @DisplayName("AI 분석 요청 성공")
     void analyze_success() throws Exception {
         // given
-        AnalysisResult expectedResult = new AnalysisResult("Test Cause", "Test Solution", "TestFile.java");
+        AIAnalysisResponseDto expectedResult = new AIAnalysisResponseDto("Test Cause", "Test Solution");
         mockWebServer.enqueue(new MockResponse()
                 .setBody(objectMapper.writeValueAsString(expectedResult))
                 .addHeader("Content-Type", "application/json"));
 
-        Issue mockIssue = Issue.builder().message("Test error message").build();
+        String prompt = "Test prompt";
 
         // when
-        AnalysisResult actualResult = openAIClient.analyze(mockIssue);
+        AIAnalysisResponseDto actualResult = openAIClient.analyze(prompt);
 
         // then
         assertThat(actualResult).isNotNull();
@@ -75,10 +74,10 @@ class OpenAIClientTest {
     void analyze_fail_unauthorized() {
         // given
         mockWebServer.enqueue(new MockResponse().setResponseCode(401));
-        Issue mockIssue = Issue.builder().message("Test error message").build();
+        String prompt = "Test prompt";
 
         // when & then
-        assertThatThrownBy(() -> openAIClient.analyze(mockIssue))
+        assertThatThrownBy(() -> openAIClient.analyze(prompt))
                 .isInstanceOf(AIAnalysisException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AI_PROVIDER_AUTH_FAILED);
     }
@@ -88,10 +87,10 @@ class OpenAIClientTest {
     void analyze_fail_rateLimitExceeded() {
         // given
         mockWebServer.enqueue(new MockResponse().setResponseCode(429));
-        Issue mockIssue = Issue.builder().message("Test error message").build();
+        String prompt = "Test prompt";
 
         // when & then
-        assertThatThrownBy(() -> openAIClient.analyze(mockIssue))
+        assertThatThrownBy(() -> openAIClient.analyze(prompt))
                 .isInstanceOf(AIAnalysisException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AI_RATE_LIMIT_EXCEEDED);
     }
@@ -101,10 +100,10 @@ class OpenAIClientTest {
     void analyze_fail_serverError() {
         // given
         mockWebServer.enqueue(new MockResponse().setResponseCode(500));
-        Issue mockIssue = Issue.builder().message("Test error message").build();
+        String prompt = "Test prompt";
 
         // when & then
-        assertThatThrownBy(() -> openAIClient.analyze(mockIssue))
+        assertThatThrownBy(() -> openAIClient.analyze(prompt))
                 .isInstanceOf(AIAnalysisException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AI_ANALYSIS_FAILED);
     }

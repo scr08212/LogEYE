@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nkm.logeye.domain.account.Account;
 import com.nkm.logeye.domain.account.AccountRepository;
 import com.nkm.logeye.domain.account.AccountStatus;
+import com.nkm.logeye.domain.ai.AIAnalysisClient;
+import com.nkm.logeye.domain.ai.dto.AIAnalysisResponseDto;
 import com.nkm.logeye.domain.issue.dto.IssueStatusUpdateRequestDto;
 import com.nkm.logeye.domain.project.Project;
 import com.nkm.logeye.domain.project.ProjectRepository;
@@ -12,21 +14,25 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.time.ZonedDateTime;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,10 +60,15 @@ class IssueControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean
+    private AIAnalysisClient aiAnalysisClient;
+
     private Account owner;
     private Project project;
     private Issue issue, resolvedIssue, ignoredIssue;
     private IssueEvent issueEvent;
+    private String mockStackTrace;
+
 
     @BeforeEach
     void setUp() {
@@ -75,11 +86,18 @@ class IssueControllerTest {
                 .status(ProjectStatus.ACTIVE)
                 .build());
 
+        mockStackTrace = """
+                        java.lang.NullPointerException: Cannot invoke "String.length()" because "s" is null
+                        \tat com.nkm.logeye.service.MyService.doSomething(MyService.java:10)
+                        \tat com.nkm.logeye.controller.MyController.handle(MyController.java:20)
+                        """;
+
         issue = issueRepository.save(Issue.builder()
                 .project(project)
                 .message("This is UNHANDLED")
                 .status(IssueStatus.UNHANDLED)
                 .level(IssueLevel.ERROR)
+                .stackTrace(mockStackTrace)
                 .eventCount(10L)
                 .fingerprint("test-fingerprint-1234")
                 .lastSeen(ZonedDateTime.now())
@@ -90,6 +108,7 @@ class IssueControllerTest {
                 .message("This is RESOLVED")
                 .status(IssueStatus.RESOLVED)
                 .level(IssueLevel.ERROR)
+                .stackTrace(mockStackTrace)
                 .eventCount(5L)
                 .fingerprint("test-fingerprint-12345")
                 .lastSeen(ZonedDateTime.now())
@@ -100,6 +119,7 @@ class IssueControllerTest {
                 .message("This is IGNORED")
                 .status(IssueStatus.IGNORED)
                 .level(IssueLevel.ERROR)
+                .stackTrace(mockStackTrace)
                 .eventCount(20L)
                 .fingerprint("test-fingerprint-123456")
                 .lastSeen(ZonedDateTime.now())
@@ -108,7 +128,7 @@ class IssueControllerTest {
         issueEvent = issueEventRepository.save(IssueEvent.builder()
                 .issue(issue)
                 .occurredAt(ZonedDateTime.now())
-                .contextData("{\"key\":\"value\"}")
+                .contextData("{\"appVersion\":\"1.0.0\", \"environment\":\"production\", \"key\":\"value\"}")
                 .build());
     }
 
@@ -206,6 +226,40 @@ class IssueControllerTest {
     @WithMockUser(username = "other@test.com", roles = "USER")
     void getIssueEvents_fail_notOwner() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{issueId}/events", project.getId(), issue.getId()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("AI 이슈 분석 API 성공")
+    @WithMockUser(username = "owner@test.com", roles = "USER")
+    void analysisIssue_success() throws Exception {
+        // given
+        AIAnalysisResponseDto responseDto = new AIAnalysisResponseDto("NPE 발생", "null 체크 추가");
+        when(aiAnalysisClient.analyze(anyString())).thenReturn(responseDto);
+        // when
+        mockMvc.perform(post("/api/v1/projects/{projectId}/issues/{issueId}/analyze", project.getId(), issue.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.estimated_cause").value("NPE 발생"))
+                .andExpect(jsonPath("$.data.solution_suggestion").value("null 체크 추가"))
+                .andExpect(jsonPath("$.data.impacted_file").value("MyService.java:10"));
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(aiAnalysisClient).analyze(promptCaptor.capture());
+
+        String generatedPrompt = promptCaptor.getValue();
+        assertThat(generatedPrompt).contains("This is UNHANDLED"); // message 포함 확인
+        assertThat(generatedPrompt).contains("MyService.java:10"); // stackTrace 포함 확인
+        assertThat(generatedPrompt).contains("appVersion\":\"1.0.0"); // contextData 포함 확인
+    }
+
+    @Test
+    @DisplayName("AI 이슈 분석 API 실패 - 다른 사용자 접근")
+    @WithMockUser(username = "other@test.com", roles = "USER")
+    void analysisIssue_fail_notOwner() throws Exception {
+        mockMvc.perform(post("/api/v1/projects/{projectId}/issues/{issueId}/analyze", project.getId(), issue.getId()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }

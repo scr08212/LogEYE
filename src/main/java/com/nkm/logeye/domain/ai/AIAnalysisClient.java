@@ -1,8 +1,7 @@
 package com.nkm.logeye.domain.ai;
 
-import com.nkm.logeye.domain.ai.dto.AnalysisResult;
-import com.nkm.logeye.domain.issue.Issue;
+import com.nkm.logeye.domain.ai.dto.AIAnalysisResponseDto;
 
 public interface AIAnalysisClient {
-    AnalysisResult analyze(Issue issue);
+    AIAnalysisResponseDto analyze(String prompt);
 }

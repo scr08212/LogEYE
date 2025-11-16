@@ -2,7 +2,7 @@ package com.nkm.logeye.domain.ai.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record AnalysisResult(
+public record AnalysisResultDto(
         @JsonProperty("estimated_cause")
         String estimatedCause,
         @JsonProperty("solution_suggestion")

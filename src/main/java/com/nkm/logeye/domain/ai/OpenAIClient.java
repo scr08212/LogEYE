@@ -1,7 +1,6 @@
 package com.nkm.logeye.domain.ai;
 
-import com.nkm.logeye.domain.ai.dto.AnalysisResult;
-import com.nkm.logeye.domain.issue.Issue;
+import com.nkm.logeye.domain.ai.dto.AIAnalysisResponseDto;
 import com.nkm.logeye.global.exception.AIAnalysisException;
 import com.nkm.logeye.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +23,15 @@ public class OpenAIClient implements AIAnalysisClient{
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
     @Override
-    public AnalysisResult analyze(Issue issue) {
+    public AIAnalysisResponseDto analyze(String prompt) {
         WebClient webClient = webClientBuilder
                 .baseUrl(aiProperties.getUrl())
                 .defaultHeader("Authorization", "Bearer " + aiProperties.getApiKey())
                 .build();
 
         // 프롬프트 생성
-        String prompt = "Analysis this error: "+issue.getMessage();
         Object requestBody = createRequestBody(prompt);
-
-        log.info("Requesting AI analysis for Issue ID: {}\nBody: {}", issue.getId(), requestBody);
+        log.info("Requesting AI analysis...");
 
         // API 호출 및 결과 파싱
         try{
@@ -54,7 +51,7 @@ public class OpenAIClient implements AIAnalysisClient{
                         }
                         return Mono.error(new AIAnalysisException(ErrorCode.AI_ANALYSIS_FAILED));
                     })
-                    .bodyToMono(AnalysisResult.class)
+                    .bodyToMono(AIAnalysisResponseDto.class)
                     .timeout(REQUEST_TIMEOUT)
                     .doOnError(throwable -> log.error("Error during AI analysis request.", throwable))
                     .onErrorMap(e->!(e instanceof AIAnalysisException), e -> new AIAnalysisException(ErrorCode.AI_ANALYSIS_FAILED, e))
@@ -62,7 +59,7 @@ public class OpenAIClient implements AIAnalysisClient{
         } catch (AIAnalysisException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Failed to get AI analysis for Issue ID: {}. Error: {}", issue.getId(), e.getMessage());
+            log.error("Failed to get AI analysis. Error: {}", e.getMessage());
             throw new AIAnalysisException(ErrorCode.AI_ANALYSIS_FAILED, e);
         }
     }
